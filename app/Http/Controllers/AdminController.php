@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use App\Models\Users_Data;
 
 class AdminController extends Controller
 {
@@ -22,9 +23,10 @@ class AdminController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function create()
+    public function tampil_user(Request $request)
     {
-        //
+        $data = Users_Data::all();
+        return view('pages.user')->with('data', $data);
     }
 
     /**

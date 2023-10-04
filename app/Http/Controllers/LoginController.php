@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\Users_Balance;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
@@ -27,24 +28,24 @@ class LoginController extends Controller
     public function daftar(Request $request)
     {
         $request->validate([
-           'nama'=>'required|max:255|unique:users,name',
-           'email'=>'required|email|max:255',
-           'password'=>'required'
-        ],[
-            'nama.required'=>'nama harus diisi',
-            'nama.max'=>'karakter nama terlalu panjang',
-            'nama.unique'=>'nama sudah ada',
+            'nama' => 'required|max:255|unique:users,name',
+            'email' => 'required|email|max:255',
+            'password' => 'required'
+        ], [
+            'nama.required' => 'nama harus diisi',
+            'nama.max' => 'karakter nama terlalu panjang',
+            'nama.unique' => 'nama sudah ada',
 
-            'email.required'=>'email harus diisi',
-            'email.email'=>'email tidak valid',
-            'email.max'=>'karakter email terlalu panjang',
+            'email.required' => 'email harus diisi',
+            'email.email' => 'email tidak valid',
+            'email.max' => 'karakter email terlalu panjang',
 
-            'password.required'=>'password harus diisi'
+            'password.required' => 'password harus diisi'
         ]);
 
         try {
             $password = Hash::make($request->password);
-            
+
             $user = new User();
             $user->name = $request->nama;
             $user->email = $request->email;
@@ -53,7 +54,6 @@ class LoginController extends Controller
 
             $user->save();
             return redirect()->back()->with('success', 'data berhasil ditambahkan');
-
         } catch (\Throwable $th) {
             //throw $th;
             return redirect()->back()->with('error', 'data gagal ditambahkan');
@@ -69,42 +69,51 @@ class LoginController extends Controller
     public function login(Request $request)
     {
         $request->validate([
-            'email'=>'required|email|max:255',
-            'password'=>'required'
-         ],[
-             'email.required'=>'email harus diisi',
-             'email.email'=>'email tidak valid',
-             'email.max'=>'karakter email terlalu panjang',
- 
-             'password.required'=>'password harus diisi'
-         ]);
+            'email' => 'required|email|max:255',
+            'password' => 'required'
+        ], [
+            'email.required' => 'email harus diisi',
+            'email.email' => 'email tidak valid',
+            'email.max' => 'karakter email terlalu panjang',
 
-         $email = $request->email;
-         $password = $request->password;
+            'password.required' => 'password harus diisi'
+        ]);
 
-         $result = User::where('email', $email)->first();
-         if ($result){
-            if(password_verify($password, $result->password)){
-                if($result->level_user == "admin") {
+        $email = $request->email;
+        $password = $request->password;
+
+        $result = User::where('email', $email)->first();
+        if ($result) {
+            if (password_verify($password, $result->password)) {
+                if ($result->level_user == "admin") {
                     $level = "admin";
                 } else {
                     $level = "user";
                 }
+
+                $userBalance = Users_Balance::where('id', $result->id)->first();
+                if ($userBalance) {
+                    $balanceAmount = $userBalance->balance;
+                } else {
+                    $balanceAmount = 0;
+                }
+              
                 session([
-                    'login'=>true, 
-                    'nama'=> $result->name,
-                    'email'=> $result->email,
-                    'level_user'=> $level,
-                    'id'    =>  $result->id
+                    'login' => true,
+                    'nama' => $result->name,
+                    'email' => $result->email,
+                    'level_user' => $level,
+                    'id' =>  $result->id,
+                    'balance' => $balanceAmount,
                 ]);
                 
                 return redirect()->to('dashboard');
             } else {
                 return redirect()->to('/')->with('error', 'Email Atau Password Salah');
             }
-         } else {
+        } else {
             return redirect()->to('/')->with('error', 'akun tidak ditemukan');
-         }
+        }
     }
 
     /**
@@ -141,8 +150,8 @@ class LoginController extends Controller
     {
         $request->validate([
             'nama'  =>  'required|max:255',
-            'email' =>'required|email|max:255'
-        ],[
+            'email' => 'required|email|max:255'
+        ], [
             'nama.required' =>  'nama harus diisi',
             'nama.max' =>  'karakter nama terlalu panjang',
             'email.required' =>  'email harus diisi',
@@ -151,24 +160,23 @@ class LoginController extends Controller
         ]);
 
         try {
-            User::where('id',session()->get('id'))->update([
+            User::where('id', session()->get('id'))->update([
                 'name'  =>  $request->nama,
                 'email' => $request->email
             ]);
             $id = session()->get('id');
 
-            $result = User::where('id',session()->get('id'))->first();
-            session()->forget('nama'); 
+            $result = User::where('id', session()->get('id'))->first();
+            session()->forget('nama');
             session()->forget('email');
             session([
                 'nama'  =>  $result->name,
                 'email' =>  $result->email
             ]);
 
-            return redirect()->back()->with('success','data berhasil diupdate');
+            return redirect()->back()->with('success', 'data berhasil diupdate');
         } catch (\Throwable $th) {
-            return redirect()->back()->with('error','data gagal diupdate');
-            
+            return redirect()->back()->with('error', 'data gagal diupdate');
         }
     }
 
