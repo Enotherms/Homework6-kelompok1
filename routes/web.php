@@ -40,4 +40,3 @@ Route::group(['middleware' => ['Auth']], function () {
 
     // login sebagai user
 });
-
