@@ -34,7 +34,7 @@ Route::group(['middleware' => ['Auth']], function () {
     // login sebagai admin
     Route::group(['middleware' => ['HanyaAdmin']], function (){
         Route::get('user', [UserController::class, 'index']);
-        
+        Route::get('user', [AdminController::class, 'tampil_user']);  
     });
 
 
